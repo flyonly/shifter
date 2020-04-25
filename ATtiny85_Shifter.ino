@@ -1,8 +1,14 @@
 // ATtiny85 Bike Shifter Dual Button with LED gear count
 
 #include <SoftwareServo.h>        //needs to be 8Mhz
+#include <Adafruit_NeoPixel.h>
 
 SoftwareServo servo;              // Define left servo
+
+#define PIN            4          // NeoPixel pin number
+#define NUMPIXELS      8          // NeoPixel Pixels
+
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 #define ACTIVATED LOW
 const int buttonUp = 1;           // the number of the pushbutton pin 1
@@ -30,11 +36,19 @@ void setup() {
   pinMode(buttonDown, INPUT);
   digitalWrite(buttonDown,HIGH);
 
+  pixels.begin();
   // initialize start position netrual
-  down();                         // go down one gear shift 
-  centre();                       // half shift to get to centre
-  }
+    down();                         // go down one gear shift 
+  //  centre();                       // half shift to get to centre
+    delay(500);
+    netrual(); 
+    delay(500);
 
+  for(int i=0; i<8 ; i +=1)
+    {pixels.setPixelColor(i, pixels.Color(0,0,0));
+    pixels.show(); // This sends the updated pixel color to the hardware.  
+    }
+  }
 void loop() {                     // Loop through motion tests
   // read the state of the pushbutton value:
   buttonStateUp = digitalRead(buttonUp);
@@ -52,18 +66,32 @@ void loop() {                     // Loop through motion tests
   // check if the pushbutton is pressed. If it is, the buttonStateUp is HIGH:
   if (buttonStateUp == ACTIVATED) {
     up();                         // gear shift up
-      if (gear == 0 ) gear = 1;  
-      if (gear == 6 ) gear = 5;         
+        if (gear == 0 ) gear = 1;  
+        if (gear == 6 ) gear = 5;         
     gear += 1; // increase gear number by one
+    pixels.setPixelColor(gear-1, pixels.Color(255,0,0));
+    pixels.show(); // This sends the updated pixel color to the hardware.
     flash ();                     // flash gear number 
     }
     
   if (buttonStateDown == ACTIVATED) {
     down();                       // gear shift down
     gear -= 1;                     // decrease gear number by one
-       if (gear == -1 ) gear = 1;
-       if (gear == 0 ) gear = 1;       
+       if (gear == -1 ){
+        gear = 1;
+        pixels.setPixelColor(gear-1, pixels.Color(255,0,0));
+        pixels.show(); // This sends the updated pixel color to the hardware.         
+       }
+       if (gear == 0 ){
+        gear = 1;       
+        pixels.setPixelColor(gear-1, pixels.Color(255,0,0));
+        pixels.show(); // This sends the updated pixel color to the hardware.          
+       }
+       else {
+    pixels.setPixelColor(gear, pixels.Color(0,0,0));
+    pixels.show(); // This sends the updated pixel color to the hardware.    
     flash ();                     // flash gear number
+       }
   } 
 }
 
@@ -117,22 +145,32 @@ void netrual() {
        delay(del);                      
        SoftwareServo::refresh();               // required by SoftwareServo Library to sweep correctly
      }           
+     delay (500);
    for(pos = net ; pos >= mid; pos -= 1)       // goes from 135 degrees to 90 degrees 
      {                                         // in steps of 1 degree 
        servo.write(pos);                       // tell servo to go to position in variable 'pos' 
        delay(del);                      
        SoftwareServo::refresh();               // required by SoftwareServo Library to sweep correctly
      } 
-     gear = 0;               
+     gear = 0;
+   for(int i=0; i<7 ; i +=1)
+    {pixels.setPixelColor(i, pixels.Color(0,255,0));
+    pixels.show(); // This sends the updated pixel color to the hardware.  
+    }
+    delay(1000);
+    for(int i=0; i<7 ; i +=1)
+    {pixels.setPixelColor(i, pixels.Color(0,0,0));
+    pixels.show(); // This sends the updated pixel color to the hardware.  
+    }               
 }
 
 // Flashes gear number
 void flash(){
-   for (int i=0 ; i < gear; i +=1)
+/*   for (int i=0 ; i < gear; i +=1)
      {
        digitalWrite(ledPin, HIGH);
        delay(300);
        digitalWrite(ledPin, LOW);
-       delay(300);
-     }
+       delay(300); 
+     } */  
 }
