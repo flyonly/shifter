@@ -52,13 +52,17 @@ void loop() {                     // Loop through motion tests
   // check if the pushbutton is pressed. If it is, the buttonStateUp is HIGH:
   if (buttonStateUp == ACTIVATED) {
     up();                         // gear shift up
-    gear +=1;                     // increase gear number by one
-    flash ();                     // flash gear number
-  } 
- 
+      if (gear == 0 ) gear = 1;  
+      if (gear == 6 ) gear = 5;         
+    gear += 1; // increase gear number by one
+    flash ();                     // flash gear number 
+    }
+    
   if (buttonStateDown == ACTIVATED) {
     down();                       // gear shift down
-    gear -=1;                     // decrease gear number by one
+    gear -= 1;                     // decrease gear number by one
+       if (gear == -1 ) gear = 1;
+       if (gear == 0 ) gear = 1;       
     flash ();                     // flash gear number
   } 
 }
@@ -124,11 +128,11 @@ void netrual() {
 
 // Flashes gear number
 void flash(){
-   for (int i=0 ; i < gear+2; i +=1)
+   for (int i=0 ; i < gear; i +=1)
      {
        digitalWrite(ledPin, HIGH);
-       delay(200);
+       delay(300);
        digitalWrite(ledPin, LOW);
-       delay(200);
+       delay(300);
      }
 }
