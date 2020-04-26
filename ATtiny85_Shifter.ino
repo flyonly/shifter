@@ -1,4 +1,9 @@
-// ATtiny85 Bike Shifter Dual Button with LED gear count
+// ATtiny85 Bike Shifter Dual Button with NeoPixel gear indicator
+// NeoPixel will indicate Green at start up and bike should then be in Netrual
+// Up button - up one gear, Down button - down one gear.  Both buttons the unit
+// will go down one gear then back up half a gear to get to netural.  So this should
+// work from 1st or 2nd.  Havent yet tried it on a motorcycle.  It will then show
+// green to indicate you are in netrual
 
 #include <SoftwareServo.h>        //needs to be 8Mhz
 #include <Adafruit_NeoPixel.h>
@@ -13,12 +18,12 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ80
 #define ACTIVATED LOW
 const int buttonUp = 1;           // the number of the pushbutton pin 1
 const int buttonDown = 2;         // the number of the pushbutton pin 2
-const int ledPin =  3;
-const int del = 5;
-const int sup = 180;
-const int dow = 0;
-const int mid = 90;
-const int net = 135;
+const int ledPin =  3;            // not needed.  Only indicates power on now.
+const int del = 5;                // servo refresh delay
+const int sup = 180;              // shift up degrees
+const int dow = 0;                // shift down degree
+const int mid = 90;               // rest degree postition
+const int net = 135;              // half shift up to get netrual
 
 // variables will change:
 int buttonStateUp = 0;            // variable for reading the pushbutton status
@@ -39,16 +44,17 @@ void setup() {
   pixels.begin();
   // initialize start position netrual
     down();                         // go down one gear shift 
-  //  centre();                       // half shift to get to centre
     delay(500);
     netrual(); 
     delay(500);
-
+    
+  // clears NeoPixel
   for(int i=0; i<8 ; i +=1)
     {pixels.setPixelColor(i, pixels.Color(0,0,0));
     pixels.show(); // This sends the updated pixel color to the hardware.  
     }
   }
+  
 void loop() {                     // Loop through motion tests
   // read the state of the pushbutton value:
   buttonStateUp = digitalRead(buttonUp);
@@ -68,29 +74,27 @@ void loop() {                     // Loop through motion tests
     up();                         // gear shift up
         if (gear == 0 ) gear = 1;  
         if (gear == 6 ) gear = 5;         
-    gear += 1; // increase gear number by one
-    pixels.setPixelColor(gear-1, pixels.Color(255,0,0));
-    pixels.show(); // This sends the updated pixel color to the hardware.
-    flash ();                     // flash gear number 
+    gear += 1;                    // increase gear number by one
+    pixels.setPixelColor(gear-1, pixels.Color(255,0,0));     //(R,G,B)
+    pixels.show();                // This sends the updated pixel color to the hardware.
     }
     
   if (buttonStateDown == ACTIVATED) {
     down();                       // gear shift down
-    gear -= 1;                     // decrease gear number by one
+    gear -= 1;                    // decrease gear number by one
        if (gear == -1 ){
         gear = 1;
-        pixels.setPixelColor(gear-1, pixels.Color(255,0,0));
-        pixels.show(); // This sends the updated pixel color to the hardware.         
+        pixels.setPixelColor(gear-1, pixels.Color(255,0,0));  //(R,G,B)
+        pixels.show();            // This sends the updated pixel color to the hardware.         
        }
        if (gear == 0 ){
         gear = 1;       
-        pixels.setPixelColor(gear-1, pixels.Color(255,0,0));
-        pixels.show(); // This sends the updated pixel color to the hardware.          
+        pixels.setPixelColor(gear-1, pixels.Color(255,0,0));  //(R,G,B)
+        pixels.show();            // This sends the updated pixel color to the hardware.          
        }
        else {
-    pixels.setPixelColor(gear, pixels.Color(0,0,0));
-    pixels.show(); // This sends the updated pixel color to the hardware.    
-    flash ();                     // flash gear number
+    pixels.setPixelColor(gear, pixels.Color(0,0,0));          //(R,G,B)
+    pixels.show();                // This sends the updated pixel color to the hardware.    
        }
   } 
 }
@@ -154,23 +158,12 @@ void netrual() {
      } 
      gear = 0;
    for(int i=0; i<7 ; i +=1)
-    {pixels.setPixelColor(i, pixels.Color(0,255,0));
-    pixels.show(); // This sends the updated pixel color to the hardware.  
+    {pixels.setPixelColor(i, pixels.Color(0,255,0));  //(R,G,B)
+    pixels.show();                             // This sends the updated pixel color to the hardware.  
     }
     delay(1000);
     for(int i=0; i<7 ; i +=1)
-    {pixels.setPixelColor(i, pixels.Color(0,0,0));
-    pixels.show(); // This sends the updated pixel color to the hardware.  
+    {pixels.setPixelColor(i, pixels.Color(0,0,0));  //(R,G,B)
+    pixels.show();                             // This sends the updated pixel color to the hardware.  
     }               
-}
-
-// Flashes gear number
-void flash(){
-/*   for (int i=0 ; i < gear; i +=1)
-     {
-       digitalWrite(ledPin, HIGH);
-       delay(300);
-       digitalWrite(ledPin, LOW);
-       delay(300); 
-     } */  
-}
+}  
