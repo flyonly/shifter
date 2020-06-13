@@ -8,7 +8,7 @@
 #include <SoftwareServo.h>        //needs to be 8Mhz
 #include <Adafruit_NeoPixel.h>
 
-SoftwareServo servo;              // Define left servo
+SoftwareServo servo;              // Define servo
 
 #define PIN            4          // NeoPixel pin number
 #define NUMPIXELS      8          // NeoPixel Pixels
@@ -18,7 +18,6 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ80
 #define ACTIVATED LOW
 const int buttonUp = 1;           // the number of the pushbutton pin 1
 const int buttonDown = 2;         // the number of the pushbutton pin 2
-const int ledPin =  3;            // not needed.  Only indicates power on now.
 const int del = 5;                // servo refresh delay
 const int sup = 180;              // shift up degrees
 const int dow = 0;                // shift down degree
@@ -32,8 +31,7 @@ int pos = dow;                    // variable for servo position
 int gear = 0;                     // variable for gear position
 
 void setup() {
-  pinMode(ledPin, OUTPUT);        // turn pin to LED
-  servo.attach(0);                // Set left servo to digital pin 10
+  servo.attach(0);                // Set servo to digital pin 0
   
   // initialize the pushbutton pin as an input:
   pinMode(buttonUp, INPUT);
@@ -166,4 +164,4 @@ void netrual() {
     {pixels.setPixelColor(i, pixels.Color(0,0,0));  //(R,G,B)
     pixels.show();                             // This sends the updated pixel color to the hardware.  
     }               
-}  
+}
