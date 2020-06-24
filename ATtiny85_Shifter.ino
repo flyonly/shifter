@@ -91,6 +91,7 @@ void loop() {                     // Loop through motion tests
        }
        else {
     pixels.setPixelColor(gear, pixels.Color(0,0,0));          //(R,G,B)
+    pixels.setPixelColor(gear-1, pixels.Color(255,0,0));          //(R,G,B)
     pixels.show();                // This sends the updated pixel color to the hardware.    
        }
 
