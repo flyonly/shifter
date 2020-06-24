@@ -18,7 +18,7 @@ SoftRcPulseOut myservo;  // create servo object to control a servo
 #define NUMPIXELS      8          // NeoPixel Pixels
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-
+Adafruit_NeoPixel strip(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 #define ACTIVATED LOW
 
 /////////Declare and Initialize Variables//////////////////////////// 
@@ -52,12 +52,13 @@ void setup() {
 //  pinMode (1, INPUT);
 //  digitalWrite(1, HIGH); // sets the digital pin 1 to 5v for Neopixel
 
-  pixels.begin();   
-  // clears NeoPixel
-  for(int i=0; i<8 ; i +=1)
-    {pixels.setPixelColor(i, pixels.Color(0,0,0));
-    pixels.show(); // This sends the updated pixel color to the hardware.  
-    }
+  strip.begin();
+  strip.show(); // Initialize all pixels to 'off'
+  colorWipe(strip.Color(255, 0, 0), 50); // Red
+  colorWipe(strip.Color(0, 255, 0), 50); // Green
+  colorWipe(strip.Color(0, 0, 255), 50); // Blue
+  strip.clear();
+  strip.show(); // Initialize all pixels to 'off' 
   }
   
 void loop() {                     // Loop through motion tests
@@ -172,12 +173,19 @@ void netrual() {
     pixels.show();                             // This sends the updated pixel color to the hardware.  
     }
     delay(1000);
-    for(int i=0; i<7 ; i +=1)
+   for(int i=0; i<7 ; i +=1)
     {pixels.setPixelColor(i, pixels.Color(0,0,0));  //(R,G,B)
-    pixels.show();                             // This sends the updated pixel color to the hardware.  
-    }         
+    strip.show();                             // This sends the updated pixel color to the hardware.         
+    }
 }
-
+// Fill the dots one after the other with a color
+void colorWipe(uint32_t c, uint8_t wait) {
+  for(uint16_t i=0; i<strip.numPixels(); i++) {
+      strip.setPixelColor(i, c);
+      strip.show();
+      delay(wait);
+  }
+}
 // routines to use for debugging.  Can use it to blink different counts at different parts of the script 
 // with onboard led
 #define DEBUG 1  // Set to 1 to enable, 0 to disable
