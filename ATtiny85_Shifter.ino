@@ -18,7 +18,7 @@ SoftRcPulseOut myservo;  // create servo object to control a servo
 #define PIN            4          // NeoPixel pin number
 #define NUMPIXELS      8          // NeoPixel Pixels
 #define REFRESH_PERIOD_MS 3       // servo refresh
-#define NOW               1       // servo pulse
+#define NOW               2       // servo pulse
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
@@ -55,13 +55,12 @@ void setup() {
   dow = EEPROM.read(address);
   sup = EEPROM.read(address+1);    
   net = EEPROM.read(address+2);   
-  sup = 180;
 // Uncomment to reset inital positions
- 
+/* 
   EEPROM.write(address, 20);  //dow 
   EEPROM.write(address+1, 160); //sup 
   EEPROM.write(address+2, 135); //net  
-  
+*/  
   pixels.begin();       // Turn on Neopixels
   colorWipe(pixels.Color(255, 0, 0), 50); // Red
   colorWipe(pixels.Color(0, 255, 0), 50); // Green
@@ -149,14 +148,15 @@ void setup() {
       }
       motion(sup);
       delay(50); 
-    }
-    EEPROM.update(address, dow);                            // Write new positions to EEprom if they have changed
-    EEPROM.update(address+1, sup);
-    EEPROM.update(address+2, net);   
+    } 
     nopixels();
+  }
+
     pressLength_milliSeconds = 0;
     centre();                                               // Set position to midpoint
-  }
+    EEPROM.update(address, dow);                            // Write new positions to EEprom if they have changed
+    EEPROM.update(address+1, sup);
+    EEPROM.update(address+2, net); 
 }
 
 void loop() {                                              
@@ -219,7 +219,7 @@ void up() {
 }
 
 // Gear shift down
-void down() {                       
+void down() {                    
   for(pos = mid; pos>=dow; pos-=1)                          // goes from 90 degrees to 0 degrees   
   {                                                         // in steps of 1 degree                                 
     motion(pos);
@@ -228,7 +228,7 @@ void down() {
   {                                                         // in steps of 1 degree                                 
     motion(pos);
   }
-} 
+}
 
 void centre() {
   for(pos = sup; pos >= mid; pos -= 1)                      // goes from 180 degrees to 90 degrees 
