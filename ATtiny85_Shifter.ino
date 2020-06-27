@@ -55,13 +55,13 @@ void setup() {
   dow = EEPROM.read(address);
   sup = EEPROM.read(address+1);    
   net = EEPROM.read(address+2);   
-  
+  sup = 180;
 // Uncomment to reset inital positions
-/* 
+ 
   EEPROM.write(address, 20);  //dow 
-  EEPROM.write(address+1, 160); //up 
+  EEPROM.write(address+1, 160); //sup 
   EEPROM.write(address+2, 135); //net  
-*/  
+  
   pixels.begin();       // Turn on Neopixels
   colorWipe(pixels.Color(255, 0, 0), 50); // Red
   colorWipe(pixels.Color(0, 255, 0), 50); // Green
@@ -207,8 +207,8 @@ void loop() {
 
 // Motion routines for up, down and netrual
 // Gear shift up
-void up() {                       
-  for(pos = mid; pos <= sup; pos += 1)                      // goes from 90 degrees to 180 degrees 
+void up() {                 
+  for(pos =mid; pos <= sup; pos += 1)                      // goes from 90 degrees to 180 degrees 
   {                                                         // in steps of 1 degree 
     motion(pos);
   } 
