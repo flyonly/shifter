@@ -18,7 +18,7 @@ SoftRcPulseOut myservo;  // create servo object to control a servo
 #define PIN            4          // NeoPixel pin number
 #define NUMPIXELS      8          // NeoPixel Pixels
 #define REFRESH_PERIOD_MS 3       // servo refresh
-#define NOW               2       // servo pulse
+#define NOW            1          // servo pulse
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
@@ -34,7 +34,7 @@ byte buttonUp = 2;                // Attiny85 pushbuttonUp pin
 byte buttonDown = 0;              // Attiny85 pushbuttonDown pin
 
 // Setting initial variables or variable type
-byte del = 5;                     // servo refresh delay
+byte del = 50;                    // servo pause because the Attiny is faster than the servo
 byte dow ;                        // shift down degree
 byte sup ;                        // shift up degrees
 byte net ;                        // half shift up to get netrual
@@ -67,9 +67,6 @@ void setup() {
   colorWipe(pixels.Color(0, 0, 255), 50); // Blue
   nopixels();           // Write (0,0,0) to all Neopixels
 
-
-
- 
 // Read the state of the down pushbutton value:
 //Record *roughly* the of tenths of seconds the button in being held down 
   while (digitalRead(buttonDown) == LOW ||digitalRead(buttonUp) == LOW ){
@@ -149,11 +146,11 @@ void setup() {
       motion(sup);
       delay(50); 
     } 
-    nopixels();
+        centre();                                               // Set position to midpoint
+        nopixels();
   }
 
     pressLength_milliSeconds = 0;
-    centre();                                               // Set position to midpoint
     EEPROM.update(address, dow);                            // Write new positions to EEprom if they have changed
     EEPROM.update(address+1, sup);
     EEPROM.update(address+2, net); 
@@ -215,7 +212,7 @@ void up() {
   for(pos = sup; pos >= mid; pos -= 1)                      // goes from 180 degrees to 90 degrees 
     {                                                       // in steps of 1 degree 
     motion(pos);
-    }           
+    }            
 }
 
 // Gear shift down
@@ -223,6 +220,7 @@ void down() {
   for(pos = mid; pos>=dow; pos-=1)                          // goes from 90 degrees to 0 degrees   
   {                                                         // in steps of 1 degree                                 
     motion(pos);
+    if (pos<5) delay(del);                                  // slow down at close to full through so servo can keep up
   }      
   for(pos = dow; pos<=mid; pos+=1)                          // goes from 0 degrees to 90 degrees  
   {                                                         // in steps of 1 degree                                 
