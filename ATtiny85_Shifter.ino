@@ -19,6 +19,7 @@ SoftRcPulseOut myservo;                                     // Create servo obje
 #define NUMPIXELS          8                                // NeoPixel Pixels
 #define REFRESH_PERIOD_MS 10                                // Servo refresh
 #define NOW                1                                // Servo pulse
+#define SPEED              10                               // Move servo fast till this many degrees before limit
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
@@ -39,11 +40,12 @@ byte del = 50;                                              // servo pause becau
 byte dow ;                                                  // shift down degree
 byte sup ;                                                  // shift up degrees
 byte net ;                                                  // half shift up to get netrual
-byte correction = 4;                                        // adjustment for backlash
+byte correction = 5;                                        // adjustment for backlash
 byte mid = 90;                                              // rest degree postition
 byte address = 0;                                           // eeprom address location 
-byte pos = mid;                                              // variable for servo position
+byte pos = mid;                                             // variable for servo position
 int gear = 0;                                               // variable for gear position
+byte degree = 1;                                            // degree of movement per cycle
 int milliSecPress = millis();
 
 // The numbers 0-9 in Morse code  
@@ -68,11 +70,13 @@ void setup() {
   sup = EEPROM.read(address+1);    
   net = EEPROM.read(address+2);   
 // Uncomment to reset inital positions
+
 /*
-  EEPROM.write(address, 131);                               //dow 
-  EEPROM.write(address+1, 50);                             //sup 
-  EEPROM.write(address+2, 65);                              //net  
-*/ 
+  EEPROM.write(address,  50);                               //dow 
+  EEPROM.write(address+1, 131);                             //sup 
+  EEPROM.write(address+2, 115);                             //net  
+*/
+ 
   pixels.begin();                                           // Turn on Neopixels
   
 // Read the state of the down pushbutton value:
@@ -83,91 +87,92 @@ void setup() {
     } 
 // If button press is greater than 1000 mills then enter setting movement positions
   if ((pressLength_milliSeconds >= optionTwo_milliSeconds) ){ 
-//    centre ();                                              // Start in mid position
-  
+    centre ();                                              // Start in mid position
+    delay(500);
 // Adjust Down Position
+  for(pos = mid; pos>=dow; pos-=1)                          // goes from mid to down   
+  {                                                         // in steps of 1 degree                                 
+    motion(pos);
+  }                                                         // Move to down position
   pixels.setPixelColor(0, pixels.Color(0,0,155));           // (R,G,B)
   pixels.show();                                            // Initialize all pixels
   milliSecPress = millis();                                 // Reset last button press time to equal now
-  for(pos = mid; pos <= dow; pos += 1)                      // Move from mid to down
-    {                                
-    motion(pos);
-    } 
   while (millis()-milliSecPress<5000){                      // Do until button is not pressed in 5000 mills
     if (digitalRead(buttonDown) == LOW) {                   // Move down 1 degree to adjust down position
-      dow += 1;
-    if (dow == 179){                                        // dont move past max position
-      dow = 179;
+      dow -= 1;
+    if (dow == 1){                                          // dont move past max position
+      dow = 1;
       }
     milliSecPress = millis();
     } 
     else{
       if (digitalRead(buttonUp) == LOW) {                   // Move up 1 degree
-        dow -= 1;      
+        dow += 1;      
         milliSecPress = millis();
       }
     }
     motion(dow);                                            // Move servo
     delay(50);
   } 
-  nopixels();                                               // Clear all Neopixels 
-  for(pos = net; pos >= dow; pos -= 1)                      // Move from down to netrual 130  55
-    {                                
-    motion(pos);                                            // Move servo
-    delay (50);
-    }
-    
+  nopixels();                                               // Clear all Neopixels                                
+  for(pos = dow; pos <= net; pos += 1)                      // goes from mid to netrual 
+    {                                                       // in steps of 1 degree 
+      motion(pos);                                          // Move servo
+    }                                                       
+ 
 //Set Net Position
   pixels.setPixelColor(3, pixels.Color(0,0,155));           // (R,G,B)
   pixels.show();                                            // Show Neopixels
   milliSecPress = millis();                                 // Reset last button press time to equal now
   while (millis()-milliSecPress<5000){                      // Do until button is not pressed in 5000 mills
         if (digitalRead(buttonDown) == LOW) {
-           net += 1;                                        // Move down 1 degree
+           net -= 1;                                        // Move down 1 degree
            milliSecPress = millis();                        // Reset last button press time to equal now
         }
       if (digitalRead(buttonUp) == LOW) {                   // Move up 1 degree
-          net -= 1;      
+          net += 1;      
          milliSecPress = millis();
         }
       motion(net);                                          // Move servo
       delay(50); 
       }
     nopixels();
-       for(pos = net; pos >= sup; pos -= 1)                 // Move servo to up
-     {                                
-      motion(pos);                                          // Move servo
-     }   
-     
+  for(pos = net; pos <= sup; pos += 1)                      // goes from mid to up 
+  {                                                         // in steps of 1 degree 
+    motion(pos);                                            // Move to Up
+  }
+      
 //Set Up Position
     pixels.setPixelColor(6, pixels.Color(0,0,155));         //(R,G,B)
     pixels.show();                                          // Show Neopixels
     milliSecPress = millis();                               // Reset last button press time to equal now
     while (millis()-milliSecPress<5000){                    // Do until button is not pressed in 5000 mills
       if (digitalRead(buttonDown) == LOW) {
-        sup += 1;                                           // Move down 1 degree
+        sup -= 1;                                           // Move down 1 degree
         milliSecPress = millis();
       }
       if (digitalRead(buttonUp) == LOW) {
-        sup -= 1;                                           // Move up 1 degree      
+        sup += 1;                                           // Move up 1 degree      
         milliSecPress = millis();
       }
       motion(sup);                                          // Move servo
       delay(50); 
      } 
-     nopixels();
-     centre();                                              // Set position to midpoint  
+    nopixels();
+    centre();                                               // Set position to midpoint      
     pressLength_milliSeconds = 0;
     EEPROM.update(address, dow);                            // Write new positions to EEprom if they have changed
     EEPROM.update(address+1, sup);
     EEPROM.update(address+2, net);  
-    morse(dow);                                               // Show adjusted postion in morse - 3 digits     
-    morse(sup);                                               // Show adjusted postion in morse - 3 digits
-    morse(net);                                               // Show adjusted postion in morse - 3 digits       
+    morse(dow);                                             // Show adjusted postion in morse - 3 digits     
+    morse(sup);                                             // Show adjusted postion in morse - 3 digits
+    morse(net);                                             // Show adjusted postion in morse - 3 digits       
   }
 }
 
-void loop() {                                              
+
+void loop() {     
+                                           
 // Read the state of the down pushbutton value:
 //Record *roughly* the of tenths of seconds the button in being held down 
 
@@ -219,45 +224,49 @@ void loop() {
 }
 
 // Motion routines for up, down and netrual
-// Gear shift up - 38
+// Gear shift up
 void up() {                 
-  for(pos =mid; pos >= sup; pos -= 1)                       // goes from mid to up 
+  for(pos =mid; pos <= sup; pos += degree)                  // goes from mid to up 
   {                                                         // in steps of 1 degree 
+    if((sup-pos)>SPEED) pos++;                              // move faster if not near end point
     motion(pos);
   } 
-  for(pos = sup; pos <= mid; pos += 1)                      // goes from up to up to mid 
+  for(pos = sup; pos >= mid; pos -= degree)                 // goes from up to up to mid 
     {                                                       // in steps of 1 degree 
+    if((pos-mid)>SPEED) pos--;                              // move faster if not near end point
     motion(pos);
     }            
 }
 
-// Gear shift down -130
+// Gear shift down
 void down() {           
-  for(pos = mid; pos<=dow; pos+=1)                          // goes from mid to down   
+  for(pos = mid; pos>=dow; pos-=degree)                     // goes from mid to down   
   {                                                         // in steps of 1 degree                                 
+    if((pos-dow)>SPEED) pos--;                              // move faster if not near end point
     motion(pos);
-    if (pos<5) delay(del);                                  // slow down at close to full through so servo can keep up
   }      
-  for(pos = dow; pos>=mid; pos-=1)                          // goes from down to mid  
-  {                                                         // in steps of 1 degree                                 
+  for(pos = dow; pos<=mid; pos+=degree)                     // goes from down to mid  
+  {                                                         // in steps of 1 degree     
+    if((mid-pos)>SPEED) pos++;                              // move faster if not near end point
     motion(pos);
   } 
 }
 
-void centre() {
-  for(pos = sup; pos <= mid; pos += 1)                      // goes from 180 degrees to 90 degrees 
-  {                                                         // in steps of 1 degree 
-    motion(pos);
-  }           
+void centre() {                                             // setup for start
+    motion(mid);                                            // move to centre
+    delay(200);
+    down();                                                 // move to down
+    delay(200);
+    netrual();                                              // move to netural
 }
    
-void netrual() {                                            //55
-  for(pos = mid; pos >= net; pos -= 1)                      // goes from mid to netrual 
+void netrual() {                                            //
+  for(pos = mid; pos <= net; pos += 1)                      // goes from mid to netrual 
     {                                                       // in steps of 1 degree 
       motion(pos);
     }           
   delay (500);
-  for(pos = net ; pos <= (mid+correction); pos += 1)        // goes netrual to mid 
+  for(pos = net ; pos >= (mid-correction); pos -= 1)        // goes netrual to mid with backlash allowance 
     {                                                       // in steps of 1 degree 
       motion(pos);
     } 
